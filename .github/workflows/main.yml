@@ -1,0 +1,47 @@
+name: Build APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v5
+      with:
+        node-version: '18'
+    
+    - name: Install Dependencies
+      run: |
+        npm install -g cordova
+        npm install -g cordova-android
+    
+    - name: Create Cordova Project
+      run: |
+        cordova create MyApp com.shoaib.mufti "شعیب آن لائن مفتی"
+        cd MyApp
+        cordova platform add android
+    
+    - name: Copy HTML files
+      run: |
+        cp index.html MyApp/www/ || true
+        cp -r ./* MyApp/www/ 2>/dev/null || true
+    
+    - name: Build APK
+      run: |
+        cd MyApp
+        cordova build android
+    
+    - name: Upload APK
+      uses: actions/upload-artifact@v5
+      with:
+        name: Islamic-Mufti-App.apk
+        path: MyApp/platforms/android/app/build/outputs/apk/debug/app-debug.apk
+        retention-days: 30
